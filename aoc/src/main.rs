@@ -1,9 +1,8 @@
-mod utils;
+mod aoc_2021;
 mod aoc_2022;
 mod aoc_2023;
-mod aoc_2021;
+mod utils;
 
 fn main() {
-    aoc_2023::day_01::solve();
-    aoc_2022::day_01::solve();
+    aoc_2021::day_01::solve();
 }
