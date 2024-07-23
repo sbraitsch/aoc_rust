@@ -1,7 +1,7 @@
-use std::collections::HashSet;
-use crate::day_10::solution::Direction::{DOWN, LEFT, RIGHT, UP};
+use crate::aoc_2023::solutions::day_10::Direction::{DOWN, LEFT, RIGHT, UP};
 use crate::utils;
 use rayon::prelude::*;
+use std::collections::HashSet;
 use std::time::Instant;
 
 #[derive(Debug)]
@@ -122,20 +122,26 @@ fn part_one(pipe_loop: &HashSet<usize>) -> usize {
 }
 
 fn part_two(pipe_loop: &HashSet<usize>, map: Vec<Vec<char>>) -> usize {
-    map.into_par_iter().enumerate().map(|(y,row)| {
-        let mut inside = false;
-        row.iter().enumerate().map(|(x,pipe)| {
-            return if pipe_loop.contains(&(y * row.len() + x)) {
-                match pipe {
-                    '|' | '7' | 'F' | 'S' => inside = !inside,
-                    _ => {},
-                };
-                0
-            } else if inside {
-                1
-            } else {
-                0
-            }
-        }).sum::<usize>()
-    }).sum()
+    map.into_par_iter()
+        .enumerate()
+        .map(|(y, row)| {
+            let mut inside = false;
+            row.iter()
+                .enumerate()
+                .map(|(x, pipe)| {
+                    return if pipe_loop.contains(&(y * row.len() + x)) {
+                        match pipe {
+                            '|' | '7' | 'F' | 'S' => inside = !inside,
+                            _ => {}
+                        };
+                        0
+                    } else if inside {
+                        1
+                    } else {
+                        0
+                    };
+                })
+                .sum::<usize>()
+        })
+        .sum()
 }

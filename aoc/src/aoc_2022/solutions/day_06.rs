@@ -16,12 +16,20 @@ pub fn solve() {
     // bitcounting version. much faster
     // shifts once by char value compared to 'a', counts 1's for each window.
     // matches window size if all chars are unique
-    let scan = |size| size + include_bytes!("input.txt")
-        .windows(size)
-        .position(|w| w.iter().fold(0u32, |c, b| c | 1 << b - b'a').count_ones() as usize == size)
-        .unwrap();
+    let scan = |size| {
+        size + include_bytes!("day_06.rs") // replaced the actual input.txt here, since its inaccessible due to restructure. no point in rewriting though.
+            .windows(size)
+            .position(|w| {
+                w.iter().fold(0u32, |c, b| c | 1 << b - b'a').count_ones() as usize == size
+            })
+            .unwrap()
+    };
 
-    println!("Day 6 | Part 1: {:?}\nDay 6 | Part 2: {:?}", scan(4), scan(14));
+    println!(
+        "Day 6 | Part 1: {:?}\nDay 6 | Part 2: {:?}",
+        scan(4),
+        scan(14)
+    );
     println!("Took: {:?}", compare.elapsed());
 }
 
