@@ -5,6 +5,7 @@
       <sourceFolder url="file://$MODULE_DIR$/aoc/src" isTestSource="false" />
       <sourceFolder url="file://$MODULE_DIR$/src" isTestSource="false" />
       <sourceFolder url="file://$MODULE_DIR$/templar/src" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/elf/src" isTestSource="false" />
       <excludeFolder url="file://$MODULE_DIR$/src/aoc_2021/inputs" />
       <excludeFolder url="file://$MODULE_DIR$/src/aoc_2022/inputs" />
       <excludeFolder url="file://$MODULE_DIR$/src/aoc_2023/inputs" />

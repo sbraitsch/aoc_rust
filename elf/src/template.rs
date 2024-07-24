@@ -1,22 +1,36 @@
-use std::{env, error::Error, fs, io::ErrorKind, path::Path};
-
-use reqwest::header::{HeaderMap, HeaderValue, COOKIE};
+use std::{fs};
+use std::error::Error;
+use std::io::ErrorKind;
+use std::path::Path;
+use reqwest::header::{COOKIE, HeaderMap, HeaderValue};
 
 const TEMPLATE: &str = include_str!("aoc_template.txt");
 
-fn main() {
-    let args: Vec<String> = env::args().collect();
-
-    if args.len() != 4 {
-        eprintln!("Usage: {} <year> <filename> <session>", args[0]);
-        std::process::exit(1);
+pub fn new_day(year: &str, day: &str, root_path: &Option<String>) {
+    let base_path;
+    let session_path;
+    match root_path {
+        Some(p) => {
+            session_path = format!("{p}/session.txt");
+            base_path = format!("{p}/src/aoc_{year}");
+        },
+        None => {
+            session_path = String::from("session.txt");
+            base_path = format!("src/aoc_{year}");
+        }
+    };
+    if !Path::new(&base_path).exists() {
+        eprintln!("Please cd to the root of your aoc directory or specify the path to it with -r");
+        return;
     }
 
-    let year = &args[1];
-    let day = &args[2];
-    let session = &args[3];
-
-    let base_path = format!("aoc/src/aoc_{year}");
+    let session;
+    if let Ok(s) = fs::read_to_string(session_path) {
+        session = s;
+    } else {
+        eprintln!("Missing session.txt in project root to authenticate with AoC");
+        return;
+    }
 
     if let Err(e) = write_solution_template(&base_path, year, day) {
         eprintln!("Error writing solution template: {}", e);
@@ -26,7 +40,7 @@ fn main() {
         eprintln!("Error updating mod.rs: {}", e);
         std::process::exit(1);
     }
-    if let Err(e) = write_input(&base_path, year, day, session) {
+    if let Err(e) = write_input(&base_path, year, day, &session) {
         eprintln!("Error writing input file: {}", e);
         std::process::exit(1);
     }
@@ -65,6 +79,10 @@ fn write_input(
     session: &str,
 ) -> Result<(), Box<dyn Error>> {
     let filename = format!("input_{day}.txt");
+    let input_dir = Path::new(&base_path).join("inputs");
+    if !input_dir.exists() {
+        fs::create_dir(input_dir)?;
+    }
     let file_path = Path::new(&base_path).join("inputs").join(&filename);
     let d = day.parse::<i32>().unwrap();
     let url = format!("https://adventofcode.com/{year}/day/{d}/input");
