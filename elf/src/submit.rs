@@ -1,3 +1,3 @@
-pub fn submit(year: &str, day: i8, part: u8) {
-    println!("Submit command with year: {year}, day: {day}, part: {part}");
+pub fn submit(year: &str, day: i8, part: u8, solution: &str) {
+    println!("Submitting {solution} for Day {day} of AoC {year}, Part: {part}");
 }

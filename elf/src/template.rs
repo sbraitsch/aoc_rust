@@ -6,26 +6,15 @@ use reqwest::header::{COOKIE, HeaderMap, HeaderValue};
 
 const TEMPLATE: &str = include_str!("aoc_template.txt");
 
-pub fn new_day(year: &str, day: &str, root_path: &Option<String>) {
-    let base_path;
-    let session_path;
-    match root_path {
-        Some(p) => {
-            session_path = format!("{p}/session.txt");
-            base_path = format!("{p}/src/aoc_{year}");
-        },
-        None => {
-            session_path = String::from("session.txt");
-            base_path = format!("src/aoc_{year}");
-        }
-    };
+pub fn new_day(year: &str, day: &str) {
+    let base_path = format!("src/aoc_{year}");
     if !Path::new(&base_path).exists() {
-        eprintln!("Please cd to the root of your aoc directory or specify the path to it with -r");
+        eprintln!("Please cd to the root of your aoc directory");
         return;
     }
 
     let session;
-    if let Ok(s) = fs::read_to_string(session_path) {
+    if let Ok(s) = fs::read_to_string("session.txt") {
         session = s;
     } else {
         eprintln!("Missing session.txt in project root to authenticate with AoC");
@@ -36,7 +25,7 @@ pub fn new_day(year: &str, day: &str, root_path: &Option<String>) {
         eprintln!("Error writing solution template: {}", e);
         std::process::exit(1);
     }
-    if let Err(e) = write_mod(&base_path, day) {
+    if let Err(e) = write_solution_mod(&base_path, day) {
         eprintln!("Error updating mod.rs: {}", e);
         std::process::exit(1);
     }
@@ -44,6 +33,18 @@ pub fn new_day(year: &str, day: &str, root_path: &Option<String>) {
         eprintln!("Error writing input file: {}", e);
         std::process::exit(1);
     }
+}
+
+pub fn new_year(year: &str) {
+    // cd src
+    // create_dir aoc_{year}
+    // create utils
+    // cd aoc_{year}
+    // create mod
+    // create_dir solutions
+    // cd solutions
+    // create mod
+    println!("Triggered submodule creation for {year}");
 }
 
 fn write_solution_template(base_path: &str, year: &str, day: &str) -> Result<(), Box<dyn Error>> {
@@ -55,7 +56,7 @@ fn write_solution_template(base_path: &str, year: &str, day: &str) -> Result<(),
     Ok(())
 }
 
-fn write_mod(base_path: &str, day: &str) -> Result<(), Box<dyn Error>> {
+fn write_solution_mod(base_path: &str, day: &str) -> Result<(), Box<dyn Error>> {
     let mod_path = Path::new(&base_path).join("solutions").join("mod.rs");
     let mut content = if mod_path.exists() {
         fs::read_to_string(&mod_path)?
