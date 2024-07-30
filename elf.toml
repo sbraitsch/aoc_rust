@@ -1,8 +1,0 @@
-year = "2021"
-day = "05"
-lang = "rust"
-session = "session=53616c7465645f5f7ad02cdacc35f8e424af1004b71e66ede15ce3ab46a753405c6caf1ff823efc611816bb552ebae8ffa2b42eb276a43be2f401ec54ffe3a9d"
-template = "template.rs"
-
-[solutions]
-2021-03 = ["2954600", "1662846"]

@@ -24,14 +24,8 @@ fn fill_chart(lines: &[String], p2: bool) -> usize {
     let mut chart = vec![vec![0; 999]; 999];
     lines.iter().for_each(|line| {
         if let Some((first, second)) = line.split_once(" -> ") {
-            let (f1, f2) = first
-                .split_once(",")
-                .map(|(a, b)| (a.parse::<usize>().unwrap(), b.parse::<usize>().unwrap()))
-                .unwrap();
-            let (s1, s2) = second
-                .split_once(",")
-                .map(|(a, b)| (a.parse::<usize>().unwrap(), b.parse::<usize>().unwrap()))
-                .unwrap();
+            let (f1, f2) = parse_tuple(first);
+            let (s1, s2) = parse_tuple(second);
             if f1 == s1 {
                 for idx in get_range(f2, s2) {
                     chart[idx][f1] += 1;
@@ -52,6 +46,13 @@ fn fill_chart(lines: &[String], p2: bool) -> usize {
         .into_iter()
         .map(|row| row.into_iter().filter(|v| v > &1).count())
         .sum()
+}
+
+fn parse_tuple(second: &str) -> (usize, usize) {
+    second
+        .split_once(",")
+        .map(|(a, b)| (a.parse::<usize>().unwrap(), b.parse::<usize>().unwrap()))
+        .unwrap()
 }
 
 fn get_range(a: usize, b: usize) -> Box<dyn Iterator<Item = usize>> {
