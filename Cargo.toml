@@ -9,3 +9,4 @@ edition = "2021"
 itertools = "0.13.0"
 num-integer = "0.1.46"
 rayon = "1.10.0"
+proctor = { path = "../proctor" }
