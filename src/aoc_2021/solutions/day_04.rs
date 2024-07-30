@@ -16,41 +16,32 @@ pub fn solve() {
 #[timed]
 fn part_one(lines: &[String]) -> usize {
     let (pull_order, mut boards) = parse_boards(&lines);
-    let mut res = None;
     for num in pull_order {
-        for (idx, board) in boards.iter_mut().enumerate() {
+        for board in boards.iter_mut() {
             if mark_board(board, num) {
-                res = Some(calc_score(board, num as usize));
-                break;
+                return calc_score(board, num as usize);
             }
         }
-        if res.is_some() {
-            break;
-        }
     }
-    res.unwrap()
+    0
 }
 
 #[timed]
 fn part_two(lines: &[String]) -> usize {
     let (pull_order, mut boards) = parse_boards(&lines);
-    let mut res = None;
     let mut won = HashSet::new();
     for num in pull_order {
-        for (idx, board) in boards.iter_mut().enumerate() {
-            if !won.contains(&idx) && mark_board(board, num) {
+        let num_boards = boards.len();
+        for idx in 0..num_boards {
+            if !won.contains(&idx) && mark_board(&mut boards[idx], num) {
                 won.insert(idx);
-                if won.len() == 100 {
-                    res = Some(calc_score(board, num as usize));
-                    break;
+                if won.len() == num_boards {
+                    return calc_score(&mut boards[idx], num as usize);
                 };
             }
         }
-        if res.is_some() {
-            break;
-        }
     }
-    res.unwrap()
+    0
 }
 
 fn parse_boards(lines: &[String]) -> (Vec<u8>, Vec<BingoBoard>) {
@@ -79,12 +70,7 @@ fn mark_board(board: &mut BingoBoard, num: u8) -> bool {
         if board[field].0 == num {
             board[field].1 = true;
             for y in 0..5 {
-                if (0..5).all(|x| board[y * 5 + x].1) {
-                    return true;
-                }
-                if (0..5).all(|x| board[x * 5 + y].1) {
-                    return true;
-                }
+                if (0..5).all(|x| board[y * 5 + x].1) || (0..5).all(|x| board[x * 5 + y].1) { return true };
             }
         }
     }

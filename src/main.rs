@@ -5,5 +5,5 @@ mod aoc_2023;
 mod utils;
 
 fn main() {
-    aoc_2021::day_05::solve();
+    aoc_2021::day_04::solve();
 }
