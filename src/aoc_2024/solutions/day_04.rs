@@ -73,7 +73,6 @@ fn check_for_xmas(lines: &[String], (x, y): (usize, usize), rows: usize, cols: u
         .iter()
         .map(|&(dir_x, dir_y)| {
             let mut valid = true;
-
             for i in 1..WORD.len() {
                 let next_x = x as i32 + dir_x * i as i32;
                 let next_y = y as i32 + dir_y * i as i32;
