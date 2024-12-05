@@ -1,31 +1,27 @@
 use once_cell::sync::Lazy;
 
 use crate::utils;
+use std::cmp::Ordering;
 use std::sync::Mutex;
 use std::time::Instant;
-use std::cmp::Ordering;
 
 #[derive(Eq, PartialEq)]
 struct Page(usize);
 
 static RULES: Lazy<Mutex<Vec<(usize, usize)>>> = Lazy::new(|| Mutex::new(Vec::new()));
 
-fn custom_ord(a: usize, b: usize) -> Ordering {
-    let rules = RULES.lock().unwrap();
-    for &(first, second) in rules.iter() {
-        if a == first && b == second {
-            return Ordering::Less;
-        }
-        if a == second && b == first {
-            return Ordering::Greater;
-        }
-    }
-    Ordering::Equal
-}
-
 impl Ord for Page {
     fn cmp(&self, other: &Self) -> Ordering {
-        custom_ord(self.0, other.0)
+        let rules = RULES.lock().unwrap();
+        for &(first, second) in rules.iter() {
+            if self.0 == first && other.0 == second {
+                return Ordering::Less;
+            }
+            if self.0 == second && other.0 == first {
+                return Ordering::Greater;
+            }
+        }
+        Ordering::Equal
     }
 }
 
@@ -38,22 +34,29 @@ impl PartialOrd for Page {
 fn parse_input(input: &str) -> Vec<Vec<Page>> {
     let sections: Vec<&str> = input.split("\n\n").collect();
 
-    let rules: Vec<(usize, usize)> = sections[0].lines().map(|line| {
-        let mut parts = line.split('|');
-        let a = parts.next().unwrap().parse::<usize>().unwrap();
-        let b = parts.next().unwrap().parse::<usize>().unwrap();
-        (a, b)
-    }).collect();
+    let rules: Vec<(usize, usize)> = sections[0]
+        .lines()
+        .map(|line| {
+            let mut parts = line.split('|');
+            let a = parts.next().unwrap().parse::<usize>().unwrap();
+            let b = parts.next().unwrap().parse::<usize>().unwrap();
+            (a, b)
+        })
+        .collect();
 
     {
         let mut lazy = RULES.lock().unwrap();
-        *lazy = rules.clone(); 
+        *lazy = rules.clone();
     }
 
-    let updates: Vec<Vec<Page>> = sections[1].lines().map(|line| {
-        line.split(',').map(|num| Page(num.parse::<usize>().unwrap())).collect()
-
-    }).collect();
+    let updates: Vec<Vec<Page>> = sections[1]
+        .lines()
+        .map(|line| {
+            line.split(',')
+                .map(|num| Page(num.parse::<usize>().unwrap()))
+                .collect()
+        })
+        .collect();
     updates
 }
 
@@ -62,30 +65,26 @@ pub fn solve() {
     // elf splits the printed output at the first <space> and takes writes the first half as the solution
     let input = utils::file_to_string("2024", "05");
     let mut time = Instant::now();
-    let mut updates = parse_input(&input);
-    let p1 = part_one(&updates);
+    let (sorted, mut unsorted) = parse_input(&input).into_iter().partition(|u| u.is_sorted());
+    let p1 = part_one(&sorted);
     println!("{:?} in {:?} for Part 1", p1, time.elapsed());
     time = Instant::now();
-    let p2 = part_two(&mut updates);
+    let p2 = part_two(&mut unsorted);
     println!("{:?} in {:?} for Part 2", p2, time.elapsed());
 }
 
-fn part_one(updates: &[Vec<Page>])-> usize {
-    updates.iter().map(|update| {
-        if update.is_sorted() {
-            update[(update.len() - 1) / 2].0
-        } else {
-            0
-        }
-    }).sum()
+fn part_one(sorted: &Vec<Vec<Page>>) -> usize {
+    sorted
+        .iter()
+        .map(|update| update[(update.len() - 1) / 2].0)
+        .sum()
 }
-fn part_two(updates: &mut [Vec<Page>]) -> usize {
-    updates.iter_mut().map(|update| {
-        if !update.is_sorted() {
-            update.sort();
+fn part_two(unsorted: &mut Vec<Vec<Page>>) -> usize {
+    unsorted
+        .iter_mut()
+        .map(|update| {
+            update.sort_unstable();
             update[(update.len() - 1) / 2].0
-        } else {
-            0
-        }
-    }).sum()
+        })
+        .sum()
 }
