@@ -1,23 +1,26 @@
 use once_cell::sync::Lazy;
+use std::collections::HashMap;
 
 use crate::utils;
 use std::cmp::Ordering;
 use std::sync::Mutex;
 use std::time::Instant;
 
-#[derive(Eq, PartialEq)]
+#[derive(Debug, Eq, PartialEq)]
 struct Page(usize);
 
-static RULES: Lazy<Mutex<Vec<(usize, usize)>>> = Lazy::new(|| Mutex::new(Vec::new()));
+static RULES: Lazy<Mutex<HashMap<usize, Vec<usize>>>> = Lazy::new(|| Mutex::new(HashMap::new()));
 
 impl Ord for Page {
     fn cmp(&self, other: &Self) -> Ordering {
         let rules = RULES.lock().unwrap();
-        for &(first, second) in rules.iter() {
-            if self.0 == first && other.0 == second {
+        if let Some(mapped) = rules.get(&self.0) {
+            if mapped.contains(&other.0) {
                 return Ordering::Less;
             }
-            if self.0 == second && other.0 == first {
+        }
+        if let Some(mapped) = rules.get(&other.0) {
+            if mapped.contains(&self.0) {
                 return Ordering::Greater;
             }
         }
@@ -34,19 +37,17 @@ impl PartialOrd for Page {
 fn parse_input(input: &str) -> Vec<Vec<Page>> {
     let sections: Vec<&str> = input.split("\n\n").collect();
 
-    let rules: Vec<(usize, usize)> = sections[0]
-        .lines()
-        .map(|line| {
+    let rules: HashMap<usize, Vec<usize>> =
+        sections[0].lines().fold(HashMap::new(), |mut hm, line| {
             let mut parts = line.split('|');
             let a = parts.next().unwrap().parse::<usize>().unwrap();
             let b = parts.next().unwrap().parse::<usize>().unwrap();
-            (a, b)
-        })
-        .collect();
-
+            hm.entry(a).and_modify(|v| v.push(b)).or_insert(vec![b]);
+            hm
+        });
     {
         let mut lazy = RULES.lock().unwrap();
-        *lazy = rules.clone();
+        *lazy = rules;
     }
 
     let updates: Vec<Vec<Page>> = sections[1]
