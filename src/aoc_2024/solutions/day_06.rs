@@ -29,34 +29,25 @@ fn walk(
 ) -> Option<((usize, usize), (isize, isize))> {
     let new_x = (cur.0 as isize + dir.0) as usize;
     let new_y = (cur.1 as isize + dir.1) as usize;
+    let new_dir = match dir {
+        (0, -1) => (1, 0),
+        (1, 0) => (0, 1),
+        (0, 1) => (-1, 0),
+        (-1, 0) => (0, -1),
+        _ => (0, 0),
+    };
     if new_x >= grid[0].len() || new_y >= grid.len() {
         return None;
     }
 
     if let Some((x, y)) = special_block {
         if x == new_x && y == new_y {
-            let new_dir = match dir {
-                (0, -1) => (1, 0),
-                (1, 0) => (0, 1),
-                (0, 1) => (-1, 0),
-                (-1, 0) => (0, -1),
-                _ => (0, 0),
-            };
             return Some((cur, new_dir));
         }
     }
 
     match grid[new_y][new_x] {
-        '#' => {
-            let new_dir = match dir {
-                (0, -1) => (1, 0),
-                (1, 0) => (0, 1),
-                (0, 1) => (-1, 0),
-                (-1, 0) => (0, -1),
-                _ => (0, 0),
-            };
-            Some((cur, new_dir))
-        }
+        '#' => Some((cur, new_dir)),
         '.' | '^' => Some(((new_x, new_y), dir)),
         _ => None,
     }
@@ -88,11 +79,12 @@ fn part_one(grid: &Vec<Vec<char>>, starting: (usize, usize)) -> usize {
     }
     path.len()
 }
+
 fn part_two(grid: &Vec<Vec<char>>, starting: (usize, usize)) -> usize {
     let mut spots = 0;
     grid.iter().enumerate().for_each(|(y, row)| {
         row.iter().enumerate().for_each(|(x, &col)| {
-            if col != '#' && col != '^' {
+            if col == '.' {
                 let mut path = HashSet::new();
 
                 let mut cur_pos = starting;
