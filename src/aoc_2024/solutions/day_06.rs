@@ -59,13 +59,13 @@ pub fn solve() {
     let (grid, starting) = parse_input(utils::file_to_lines("2024", "06"));
     let mut time = Instant::now();
     let p1 = part_one(&grid, starting);
-    println!("{:?} in {:?} for Part 1", p1, time.elapsed());
+    println!("{:?} in {:?} for Part 1", p1.0, time.elapsed());
     time = Instant::now();
-    let p2 = part_two(&grid, starting);
+    let p2 = part_two(&grid, starting, p1.1);
     println!("{:?} in {:?} for Part 2", p2, time.elapsed());
 }
 
-fn part_one(grid: &Vec<Vec<char>>, starting: (usize, usize)) -> usize {
+fn part_one(grid: &Vec<Vec<char>>, starting: (usize, usize)) -> (usize, HashSet<(usize, usize)>) {
     let mut path = HashSet::new();
 
     let mut cur_pos = starting;
@@ -77,31 +77,29 @@ fn part_one(grid: &Vec<Vec<char>>, starting: (usize, usize)) -> usize {
         cur_pos = pos;
         cur_dir = dir;
     }
-    path.len()
+    (path.len(), path)
 }
 
-fn part_two(grid: &Vec<Vec<char>>, starting: (usize, usize)) -> usize {
+fn part_two(grid: &Vec<Vec<char>>, starting: (usize, usize), path: HashSet<(usize, usize)>) -> usize {
     let mut spots = 0;
-    grid.iter().enumerate().for_each(|(y, row)| {
-        row.iter().enumerate().for_each(|(x, &col)| {
-            if col == '.' {
-                let mut path = HashSet::new();
+    path.iter().for_each(|&(x, y)| {
+        if grid[y][x] == '.' {
+            let mut path = HashSet::new();
 
-                let mut cur_pos = starting;
-                let mut cur_dir = (0, -1);
-                path.insert((cur_pos, cur_dir));
+            let mut cur_pos = starting;
+            let mut cur_dir = (0, -1);
+            path.insert((cur_pos, cur_dir));
 
-                while let Some((pos, dir)) = walk(cur_pos, cur_dir, grid, Some((x, y))) {
-                    let inserted = path.insert((pos, dir));
-                    if !inserted {
-                        spots += 1;
-                        break;
-                    };
-                    cur_pos = pos;
-                    cur_dir = dir;
-                }
-            };
-        })
+            while let Some((pos, dir)) = walk(cur_pos, cur_dir, grid, Some((x, y))) {
+                let inserted = path.insert((pos, dir));
+                if !inserted {
+                    spots += 1;
+                    break;
+                };
+                cur_pos = pos;
+                cur_dir = dir;
+            }
+        };
     });
     spots
 }
