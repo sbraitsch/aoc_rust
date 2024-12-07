@@ -1,3 +1,4 @@
+use rayon::prelude::*;
 use crate::utils;
 use std::{collections::HashSet, time::Instant};
 
@@ -24,7 +25,7 @@ fn parse_input(lines: Vec<String>) -> (Vec<Vec<char>>, (usize, usize)) {
 fn walk(
     cur: (usize, usize),
     dir: (isize, isize),
-    grid: &Vec<Vec<char>>,
+    grid: &[Vec<char>],
     special_block: Option<(usize, usize)>,
 ) -> Option<((usize, usize), (isize, isize))> {
     let new_x = (cur.0 as isize + dir.0) as usize;
@@ -65,7 +66,7 @@ pub fn solve() {
     println!("{:?} in {:?} for Part 2", p2, time.elapsed());
 }
 
-fn part_one(grid: &Vec<Vec<char>>, starting: (usize, usize)) -> (usize, HashSet<(usize, usize)>) {
+fn part_one(grid: &[Vec<char>], starting: (usize, usize)) -> (usize, HashSet<(usize, usize)>) {
     let mut path = HashSet::new();
 
     let mut cur_pos = starting;
@@ -80,9 +81,8 @@ fn part_one(grid: &Vec<Vec<char>>, starting: (usize, usize)) -> (usize, HashSet<
     (path.len(), path)
 }
 
-fn part_two(grid: &Vec<Vec<char>>, starting: (usize, usize), path: HashSet<(usize, usize)>) -> usize {
-    let mut spots = 0;
-    path.iter().for_each(|&(x, y)| {
+fn part_two(grid: &[Vec<char>], starting: (usize, usize), path: HashSet<(usize, usize)>) -> usize {
+    path.par_iter().map(|&(x, y)| {
         if grid[y][x] == '.' {
             let mut path = HashSet::new();
 
@@ -93,13 +93,12 @@ fn part_two(grid: &Vec<Vec<char>>, starting: (usize, usize), path: HashSet<(usiz
             while let Some((pos, dir)) = walk(cur_pos, cur_dir, grid, Some((x, y))) {
                 let inserted = path.insert((pos, dir));
                 if !inserted {
-                    spots += 1;
-                    break;
+                    return 1;
                 };
                 cur_pos = pos;
                 cur_dir = dir;
             }
         };
-    });
-    spots
+        0
+   }).sum()
 }
