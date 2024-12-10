@@ -4,6 +4,12 @@ use std::rc::Rc;
 use std::cell::RefCell;
 
 #[derive(Debug)]
+pub struct Graph<T> {
+    nodes: HashMap<usize, Rc<RefCell<GraphNode<T>>>>,
+    next_id: usize,
+}
+
+#[derive(Debug)]
 pub struct GraphNode<T> {
     id: usize,
     value: T,
@@ -16,29 +22,17 @@ pub struct Edge<T> {
     weight: Option<usize>,
 }
 
-#[derive(Debug)]
-pub struct Graph<T> {
-    nodes: Vec<Rc<RefCell<GraphNode<T>>>>,
-    next_id: usize,
-}
-
-
-#[derive(Debug, Eq, Ord, PartialEq, PartialOrd)]
-struct SearchState {
-    cost: usize,
-    node_id: usize,
-}
 
 impl<T> Graph<T> {
 
     pub fn new() -> Self {
-        Self { nodes: Vec::new(), next_id: 0 }
+        Self { nodes: HashMap::new(), next_id: 0 }
     }
 
     pub fn add_node(&mut self, value: T) -> Rc<RefCell<GraphNode<T>>> {
         let node = Rc::new(RefCell::new(GraphNode { id: self.next_id, value, edges: Vec::new() }));
+        self.nodes.insert(self.next_id, node.clone());
         self.next_id += 1;
-        self.nodes.push(node.clone());
         node
     }
 
@@ -67,7 +61,7 @@ impl<T> Graph<T> {
         let mut previous: HashMap<usize, Option<usize>> = HashMap::new();
         let mut heap = BinaryHeap::new();
 
-        for node in &self.nodes {
+        for node in self.nodes.values() {
             let node_id = node.borrow().id;
             distances.insert(node_id, usize::MAX);
             previous.insert(node_id, None);
@@ -85,11 +79,7 @@ impl<T> Graph<T> {
                 let mut path = Vec::new();
                 let mut current = Some(node_id);
                 while let Some(node_id) = current {
-                    let node = self
-                        .nodes
-                        .iter()
-                        .find(|n| n.borrow().id == node_id)
-                        .expect("Node not found");
+                    let node = self.nodes.get(&node_id).expect("Node not found");
                     path.push(Rc::clone(node));
                     current = previous[&node_id];
                 }
@@ -103,8 +93,7 @@ impl<T> Graph<T> {
 
             let current_node = self
                 .nodes
-                .iter()
-                .find(|n| n.borrow().id == node_id)
+                .get(&node_id)
                 .expect("Node not found");
 
             for edge in &current_node.borrow().edges {
@@ -136,3 +125,28 @@ impl<T: std::fmt::Debug> GraphNode<T> {
     }
 }
 
+#[derive(Debug)]
+struct SearchState {
+    cost: usize,
+    node_id: usize,
+}
+
+impl PartialEq for SearchState {
+    fn eq(&self, other: &Self) -> bool {
+        self.cost.eq(&other.cost)
+    }
+}
+
+impl Eq for SearchState {}
+
+impl PartialOrd for SearchState {
+    fn partial_cmp(&self, other: &Self) -> Option<Ordering> {
+        Some(self.cmp(other))
+    }
+}
+
+impl Ord for SearchState {
+    fn cmp(&self, other: &Self) -> Ordering {
+        other.cost.cmp(&self.cost)
+    }
+}
