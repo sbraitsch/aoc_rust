@@ -1,13 +1,13 @@
 use crate::utils;
-use std::{collections::HashMap, time::Instant};
+use std::{collections::HashMap, mem, time::Instant};
 
 fn split_if_even(num: usize) -> Option<(usize, usize)> {
     let s = num.to_string();
     if s.len() % 2 == 0 {
         let str = s.as_str();
         Some((
-            str[..s.len() / 2].parse().unwrap(),
-            str[s.len() / 2..].parse().unwrap(),
+            str[..str.len() / 2].parse().unwrap(),
+            str[str.len() / 2..].parse().unwrap(),
         ))
     } else {
         None
@@ -22,33 +22,32 @@ pub fn solve() {
         .filter_map(|n| n.parse().ok())
         .collect::<Vec<usize>>();
     let mut time = Instant::now();
-    let p1 = part_one(&input);
-    println!("{:?} in {:?} for Part 1", p1, time.elapsed());
-    time = Instant::now();
-    let p2 = part_two(&input);
-    println!("{:?} in {:?} for Part 2", p2, time.elapsed());
-}
-
-fn part_one(stones: &[usize]) -> usize {
-    blink(25, stones)
-
-}
-fn part_two(stones: &[usize]) -> usize {
-    blink(75, stones)
-}
-
-fn blink(count: usize, initial: &[usize]) -> usize {
     let mut number_counts: HashMap<usize, usize> = HashMap::new();
-    initial.iter().for_each(|&stone| {
+    input.iter().for_each(|&stone| {
         number_counts
             .entry(stone)
             .and_modify(|v| *v += 1)
             .or_insert(1);
     });
+    let p1 = part_one(&mut number_counts);
+    println!("{:?} in {:?} for Part 1", p1, time.elapsed());
+    time = Instant::now();
+    let p2 = part_two(&mut number_counts);
+    println!("{:?} in {:?} for Part 2", p2, time.elapsed());
+}
 
+fn part_one(counts: &mut HashMap<usize, usize>) -> usize {
+    blink(25, counts)
+
+}
+fn part_two(prev: &mut HashMap<usize, usize>) -> usize {
+    blink(50, prev)
+}
+
+fn blink(count: usize, number_counts: &mut HashMap<usize, usize>) -> usize {
     for _ in 0..count {
         let mut tmp: HashMap<usize, usize> = HashMap::new();
-        for (k, v) in &number_counts {
+        for (k, v) in &mut *number_counts {
             if *k == 0 {
                 tmp.entry(1)
                     .and_modify(|ones| *ones += *v)
@@ -66,7 +65,7 @@ fn blink(count: usize, initial: &[usize]) -> usize {
                     .or_insert(*v);
             }
         }
-        number_counts = tmp;
+        mem::swap(number_counts, &mut tmp);
     }
     number_counts.values().sum()
 }
